@@ -76,8 +76,9 @@ tiktoken==0.9.0
 toml==0.10.2
 tornado==6.4.2
 tqdm==4.67.1
+# ↓ typing-inspection を削除
 typing-inspect==0.9.0
-typing-inspection==0.4.0
+# typing-inspection==0.4.0 ← 削除！
 typing_extensions==4.13.2
 tzdata==2025.2
 urllib3==2.4.0
