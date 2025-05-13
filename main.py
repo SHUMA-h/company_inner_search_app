@@ -14,6 +14,12 @@ load_dotenv() # 加筆箇所/環境変数の読み込み
 import logging
 # streamlitアプリの表示を担当するモジュール
 import streamlit as st
+
+# ✅ set_page_config はここ！表示系の処理よりも前に置く必要あり
+st.set_page_config(
+    page_title="社内文書検索アプリ"  # ct.APP_NAME でもOK。仮の文字列を直接入れても可
+)
+
 # （自作）画面表示以外の様々な関数が定義されているモジュール
 import utils
 # （自作）アプリ起動時に実行される初期化処理が記述された関数
@@ -37,10 +43,10 @@ st.json({
 ############################################################
 # 2. 設定関連
 ############################################################
-# ブラウザタブの表示文言を設定
-st.set_page_config(
-    page_title=ct.APP_NAME
-)
+# ブラウザタブの表示文言を設定 setamlit実行時のエラーのため、ライブラリの直後に移動
+# st.set_page_config(
+#     page_title=ct.APP_NAME
+# )
 
 # ログ出力を行うためのロガーの設定
 logger = logging.getLogger(ct.LOGGER_NAME)
