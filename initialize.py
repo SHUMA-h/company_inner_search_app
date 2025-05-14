@@ -17,7 +17,8 @@ from docx import Document
 from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
+# from langchain_community.vectorstores import Chroma　steamlitで使えないので下記コードに書き換え
+from langchain_community.vectorstores import FAISS #FAISSに書き換えたコード’
 import constants as ct
 
 
@@ -132,7 +133,8 @@ def initialize_retriever():
     splitted_docs = text_splitter.split_documents(docs_all)
 
     # ベクターストアの作成
-    db = Chroma.from_documents(splitted_docs, embedding=embeddings)
+    # db = Chroma.from_documents(splitted_docs, embedding=embeddings) 下記に書き換え
+    db = FAISS.from_documents(splitted_docs, embedding=embeddings) #書き換えた場所
 
     # ベクターストアを検索するRetrieverの作成
     st.session_state.retriever = db.as_retriever(search_kwargs={"k": 3})
