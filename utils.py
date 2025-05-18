@@ -89,14 +89,17 @@ def get_llm_response(chat_message):
     else:
         # モードが「社内問い合わせ」の場合のプロンプト
         question_answer_template = ct.SYSTEM_PROMPT_INQUIRY
-    # LLMから回答を取得する用のプロンプトテンプレートを作成
+    # 課題4 LLMから回答を取得する用のプロンプトテンプレートを作成
+    from langchain.prompts import PromptTemplate
+    #context を明示的にプロンプトに渡す
     question_answer_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", question_answer_template),
             MessagesPlaceholder("chat_history"),
-            ("human", "{input}")
+            ("human", "{input}"),
         ]
     )
+
 
     # 会話履歴なしでもLLMに理解してもらえる、独立した入力テキストを取得するためのRetrieverを作成
     history_aware_retriever = create_history_aware_retriever(
@@ -104,13 +107,51 @@ def get_llm_response(chat_message):
     )
 
     # LLMから回答を取得する用のChainを作成
-    question_answer_chain = create_stuff_documents_chain(llm, question_answer_prompt)
+    question_answer_chain = create_stuff_documents_chain(
+        llm=llm,
+        prompt=question_answer_prompt,
+        document_variable_name="context",
+        )
     # 「RAG x 会話履歴の記憶機能」を実現するためのChainを作成
     chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
 
-    # LLMへのリクエストとレスポンス取得
-    llm_response = chain.invoke({"input": chat_message, "chat_history": st.session_state.chat_history})
+# エラー対策
+    # # LLMへのリクエストとレスポンス取得
+    # llm_response = chain.invoke(
+    #     {"input": chat_message, 
+    #     "chat_history": st.session_state.chat_history,
+    #     })
+    
+    try:
+        llm_response = chain.invoke({
+            "input": chat_message,
+            "chat_history": st.session_state.chat_history
+        })
+    except Exception as e:
+        print("❌ LLM呼び出し時にエラー発生:", e)
+        st.error("回答生成中にエラーが発生しました。詳細はターミナルをご確認ください。")
+        return {"answer": ct.NO_DOC_MATCH_ANSWER, "context": []}
+
+
+    # 🔍 context の中身を表示（開発用）
+    if "context" in llm_response:
+        st.write("🔍 contextの中身:")
+        for i, doc in enumerate(llm_response["context"]):
+            st.write(f"{i}: {doc.metadata}")
+
+    
     # LLMレスポンスを会話履歴に追加
     st.session_state.chat_history.extend([HumanMessage(content=chat_message), llm_response["answer"]])
 
     return llm_response
+
+# 課題4のための追加
+from langchain_community.document_loaders import PyMuPDFLoader
+
+class PageAwarePDFLoader(PyMuPDFLoader):
+    def load(self):
+        docs = super().load()
+        for i, doc in enumerate(docs):
+            if "page" not in doc.metadata:
+                doc.metadata["page"] = i  # 位置に応じて仮のページ番号を補完
+        return docs

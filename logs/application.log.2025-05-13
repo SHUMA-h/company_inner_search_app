@@ -1,0 +1,13 @@
+[ERROR] 2025-05-12 16:54:13,072 line 44, in <module>, session_id=4edf5320b0fe46da88b68843bd58ae25: 初期化処理に失敗しました。
+No module named 'docx2txt'
+[ERROR] 2025-05-12 17:00:28,833 line 45, in <module>, session_id=05a1babfedc44070ba9470470fa81897: 初期化処理に失敗しました。
+No module named 'docx2txt'
+[ERROR] 2025-05-13 16:06:05,212 line 45, in <module>, session_id=7790871e0c7d49bcb213f0c412f63b15: 初期化処理に失敗しました。
+No module named 'docx2txt'
+[ERROR] 2025-05-13 16:14:07,107 line 45, in <module>, session_id=880d47cccac44accadd008833e10930a: 初期化処理に失敗しました。
+No module named 'bs4'
+[ERROR] 2025-05-13 16:16:03,771 line 45, in <module>, session_id=476754820c8d4af79539720116f9c070: 初期化処理に失敗しました。
+Could not import chromadb python package. Please install it with `pip install chromadb`.
+[ERROR] 2025-05-13 16:17:11,323 line 45, in <module>, session_id=755b5c257c4747c59b637fa53e3651c6: 初期化処理に失敗しました。
+Could not import chromadb python package. Please install it with `pip install chromadb`.
+[INFO] 2025-05-13 16:25:58,937 line 54, in <module>, session_id=51e5d0e931954adeb6818605e0995ec5: アプリが起動されました。

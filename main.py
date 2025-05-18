@@ -15,10 +15,11 @@ import logging
 # streamlitアプリの表示を担当するモジュール
 import streamlit as st
 
-# ✅ set_page_config はここ！表示系の処理よりも前に置く必要あり
+# set_page_config 移動
 st.set_page_config(
-    page_title="社内文書検索アプリ"  # ct.APP_NAME でもOK。仮の文字列を直接入れても可
-)
+    page_title="社内文書検索アプリ" , # ct.APP_NAME でもOK。仮の文字列を直接入れても可
+    layout="wide" #課題3で追加したもの
+    )
 
 # （自作）画面表示以外の様々な関数が定義されているモジュール
 import utils
@@ -29,9 +30,8 @@ import components as cn
 # （自作）変数（定数）がまとめて定義・管理されているモジュール
 import constants as ct
 
-# 新規追加部分 ログを見るためのもの
+# 追加部分 streamlitでのログを見るためのもの
 st.write("✅ Streamlit アプリ起動中")
-st.write("🔍 OPENAI_API_KEY:", os.getenv("OPENAI_API_KEY"))
 st.write("🔍 その他の環境変数:")
 st.json({
     "CHROMA_HOST": os.getenv("CHROMA_HOST"),
@@ -73,14 +73,18 @@ if not "initialized" in st.session_state:
 ############################################################
 # 4. 初期表示
 ############################################################
-# タイトル表示
-cn.display_app_title()
+# cn.display_app_title()
 
-# モード表示
-cn.display_select_mode()
+#　課題3で統一表示
+# # モード表示
+# cn.display_select_mode()
 
-# AIメッセージの初期表示
-cn.display_initial_ai_message()
+# # AIメッセージの初期表示
+# cn.display_initial_ai_message()
+
+
+# 課題3 左右カラムのレイアウトで「利用目的（ラジオボタン）」とAIメッセージ初期表示
+cn.display_interface()
 
 
 ############################################################
@@ -101,8 +105,29 @@ except Exception as e:
 ############################################################
 # 6. チャット入力の受け付け
 ############################################################
-chat_message = st.chat_input(ct.CHAT_INPUT_HELPER_TEXT)
+# chat_message = st.chat_input(ct.CHAT_INPUT_HELPER_TEXT)　修正
+# 課題3メインカラムの下に検索窓を「横幅制限つき」で配置
+# chat_input を右側のカラム内で表示（左側のサイドバーに影響されず中央揃え）
 
+# レイアウト用の空行（ログがない時に空白行を生成）
+st.write("")
+st.write("")
+
+# 2カラム構成にして、右カラムだけにチャット欄を表示
+col_left, col_right = st.columns([1, 2])
+
+with col_right:
+    st.markdown("""
+        <style>
+        [data-testid="stChatInputContainer"] {
+            max-width: 800px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    chat_message = st.chat_input(ct.CHAT_INPUT_HELPER_TEXT)
 
 ############################################################
 # 7. チャット送信時の処理

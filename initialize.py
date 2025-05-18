@@ -2,6 +2,18 @@
 このファイルは、最初の画面読み込み時にのみ実行される初期化処理が記述されたファイルです。
 """
 
+# 課題4のため
+from langchain_community.document_loaders import PyMuPDFLoader
+
+class PageAwarePDFLoader(PyMuPDFLoader):
+    def load(self):
+        docs = super().load()
+        for i, doc in enumerate(docs):
+            if "page" not in doc.metadata:
+                doc.metadata["page"] = i
+        return docs
+
+
 ############################################################
 # ライブラリの読み込み
 ############################################################
@@ -98,8 +110,7 @@ def initialize_session_id():
         # ランダムな文字列（セッションID）を、ログ出力用に作成
         st.session_state.session_id = uuid4().hex
 
-
-def initialize_retriever():
+def initialize_retriever( chunk_size=500, top_k=5, chunk_overlap=0,): #課題2
     """
     画面読み込み時にRAGのRetriever（ベクターストアから検索するオブジェクト）を作成
     """
@@ -113,19 +124,43 @@ def initialize_retriever():
     # RAGの参照先となるデータソースの読み込み
     docs_all = load_data_sources()
 
-    # OSがWindowsの場合、Unicode正規化と、cp932（Windows用の文字コード）で表現できない文字を除去
-    for doc in docs_all:
+
+    # # OSがWindowsの場合、Unicode正規化と、cp932（Windows用の文字コード）で表現できない文字を除去
+    # for doc in docs_all:
+    #     doc.page_content = adjust_string(doc.page_content)
+    #     for key in doc.metadata:
+    #         doc.metadata[key] = adjust_string(doc.metadata[key])
+    
+    # 【修正①】OS依存の文字コード調整（元の処理）＋ メタ情報の補正
+    for i, doc in enumerate(docs_all):
         doc.page_content = adjust_string(doc.page_content)
         for key in doc.metadata:
             doc.metadata[key] = adjust_string(doc.metadata[key])
-    
+
+        # 【修正②】pageメタデータがない場合に補正する
+        if "page" not in doc.metadata:
+            doc.metadata["page"] = 0  # ← 仮に0ページを設定（本来は正確なページ番号を維持）
+
+        # 【修正③】sourceがない場合にfile_pathから補完する
+        if "source" not in doc.metadata and "file_path" in doc.metadata:
+            doc.metadata["source"] = doc.metadata["file_path"]
+
+# 課題4追加
+    for doc in docs_all:
+        source = doc.metadata.get("source", "不明ファイル")
+        page = doc.metadata.get("page", "不明ページ")
+        doc.page_content = (
+            f"【この情報はファイル「{source}」の{int(page)+1}ページに記載されています】\n\n"
+            f"{doc.page_content}"
+        )
+
     # 埋め込みモデルの用意
     embeddings = OpenAIEmbeddings()
     
     # チャンク分割用のオブジェクトを作成
     text_splitter = CharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=50,
+        chunk_size=chunk_size, # 課題2
+        chunk_overlap=chunk_overlap, #
         separator="\n"
     )
 
@@ -137,7 +172,12 @@ def initialize_retriever():
     db = FAISS.from_documents(splitted_docs, embedding=embeddings) #書き換えた場所
 
     # ベクターストアを検索するRetrieverの作成
-    st.session_state.retriever = db.as_retriever(search_kwargs={"k": 3})
+    st.session_state.retriever = db.as_retriever(search_kwargs={"k": top_k}) #課題1,2
+
+# 課題4追加
+    print(f"✅ チャンク数: {len(splitted_docs)}")
+    for i, doc in enumerate(splitted_docs[:5]):
+        print(f"{i}: chars={len(doc.page_content)}, page={doc.metadata.get('page')}, source={doc.metadata.get('source')}")
 
 
 def initialize_session_state():
@@ -175,6 +215,11 @@ def load_data_sources():
     # 通常読み込みのデータソースにWebページのデータを追加
     docs_all.extend(web_docs_all)
 
+# 課題4追加
+    print("📄 読み込まれたファイル一覧:")
+    for doc in docs_all:
+        print(f"{doc.metadata.get('source')} | page={doc.metadata.get('page')} | chars={len(doc.page_content)}")
+
     return docs_all
 
 
@@ -201,6 +246,31 @@ def recursive_file_check(path, docs_all):
         file_load(path, docs_all)
 
 
+# def file_load(path, docs_all):
+#     """
+#     ファイル内のデータ読み込み
+
+#     Args:
+#         path: ファイルパス
+#         docs_all: データソースを格納する用のリスト
+#     """
+#     # ファイルの拡張子を取得
+#     file_extension = os.path.splitext(path)[1]
+#     # ファイル名（拡張子を含む）を取得
+#     file_name = os.path.basename(path)
+
+#     # 課題4追加
+#     if file_extension == ".pdf":
+#         loader = PageAwarePDFLoader(path)
+
+#     # 想定していたファイル形式の場合のみ読み込む
+#     if file_extension in ct.SUPPORTED_EXTENSIONS:
+#         # ファイルの拡張子に合ったdata loaderを使ってデータ読み込み
+#         loader = ct.SUPPORTED_EXTENSIONS[file_extension](path)
+#         docs = loader.load()
+#         docs_all.extend(docs)
+
+# 課題4のために差し替え
 def file_load(path, docs_all):
     """
     ファイル内のデータ読み込み
@@ -214,12 +284,19 @@ def file_load(path, docs_all):
     # ファイル名（拡張子を含む）を取得
     file_name = os.path.basename(path)
 
-    # 想定していたファイル形式の場合のみ読み込む
-    if file_extension in ct.SUPPORTED_EXTENSIONS:
-        # ファイルの拡張子に合ったdata loaderを使ってデータ読み込み
+    # 対応ファイルでない場合はスキップ
+    if file_extension not in ct.SUPPORTED_EXTENSIONS and file_extension != ".pdf":
+        return
+
+    # 課題4：.pdf の場合はカスタムローダーを使用
+    if file_extension == ".pdf":
+        loader = PageAwarePDFLoader(path)
+    else:
         loader = ct.SUPPORTED_EXTENSIONS[file_extension](path)
-        docs = loader.load()
-        docs_all.extend(docs)
+
+    # データ読み込み
+    docs = loader.load()
+    docs_all.extend(docs)
 
 
 def adjust_string(s):

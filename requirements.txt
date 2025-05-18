@@ -22,6 +22,7 @@ Deprecated==1.2.18
 distro==1.9.0
 docx2txt==0.9
 durationpy==0.9
+faiss-cpu==1.11.0
 fastapi==0.115.9
 filelock==3.18.0
 flatbuffers==25.2.10
@@ -142,4 +143,3 @@ wrapt==1.17.2
 yarl==1.20.0
 zipp==3.21.0
 zstandard==0.23.0
-faiss-cpu

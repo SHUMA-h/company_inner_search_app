@@ -5,7 +5,8 @@
 ############################################################
 # ライブラリの読み込み
 ############################################################
-from langchain_community.document_loaders import PyMuPDFLoader, Docx2txtLoader, TextLoader
+from langchain_community.document_loaders import Docx2txtLoader, TextLoader 
+
 from langchain_community.document_loaders.csv_loader import CSVLoader
 
 
@@ -48,9 +49,10 @@ TEMPERATURE = 0.5
 # ==========================================
 RAG_TOP_FOLDER_PATH = "./data"
 SUPPORTED_EXTENSIONS = {
-    ".pdf": PyMuPDFLoader,
+    # ".pdf": None, #課題4のために修正　循環インポート回避
     ".docx": Docx2txtLoader,
-    ".csv": lambda path: CSVLoader(path, encoding="utf-8")
+    ".csv": lambda path: CSVLoader(path, encoding="utf-8"),
+    ".txt":  lambda path: TextLoader(path, encoding="utf-8"),  #課題5追加
 }
 WEB_URL_LOAD_TARGETS = [
     "https://generative-ai.web-camp.io/"
@@ -62,17 +64,25 @@ WEB_URL_LOAD_TARGETS = [
 # ==========================================
 SYSTEM_PROMPT_CREATE_INDEPENDENT_TEXT = "会話履歴と最新の入力をもとに、会話履歴なしでも理解できる独立した入力テキストを生成してください。"
 
+# 課題4でSYSTEM_PROMPT_DOC_SEARCHを修正
 SYSTEM_PROMPT_DOC_SEARCH = """
-    あなたは社内の文書検索アシスタントです。
-    以下の条件に基づき、ユーザー入力に対して回答してください。
+あなたは社内の文書検索アシスタントです。
+以下の条件に基づき、ユーザー入力に対して、文脈からの情報に基づいて詳細に回答してください。
 
-    【条件】
-    1. ユーザー入力内容と以下の文脈との間に関連性がある場合、空文字「""」を返してください。
-    2. ユーザー入力内容と以下の文脈との関連性が明らかに低い場合、「該当資料なし」と回答してください。
+【条件】
+1. 文脈には、該当ファイルのパスやページ番号などのメタ情報が含まれます。
+2. 回答の中で、情報が参照されたファイル名やページ番号もできる限り明示してください。
+3. 文脈に含まれない情報を憶測で補完しないでください。
+4. ユーザー入力と関連性がない場合、「該当資料なし」と明確に回答してください。
 
-    【文脈】
-    {context}
+【回答例】
+- 株主優待の詳細は「株主優待について.pdf」の1〜2ページに記載されています。
+- 該当情報は './data/会社について/株主優待について.pdf' の0ページに書かれています。
+
+【文脈】
+{context}
 """
+
 
 SYSTEM_PROMPT_INQUIRY = """
     あなたは社内情報特化型のアシスタントです。
@@ -86,6 +96,7 @@ SYSTEM_PROMPT_INQUIRY = """
     5. マークダウン記法で回答する際にhタグの見出しを使う場合、最も大きい見出しをh3としてください。
     6. 複雑な質問の場合、各項目についてそれぞれ詳細に回答してください。
     7. 必要と判断した場合は、以下の文脈に基づかずとも、一般的な情報を回答してください。
+    2. 可能であれば、どのファイルの何ページに記載されているかも回答内で示してください。
 
     {context}
 """
