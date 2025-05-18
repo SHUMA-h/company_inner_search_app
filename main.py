@@ -30,15 +30,16 @@ import components as cn
 # （自作）変数（定数）がまとめて定義・管理されているモジュール
 import constants as ct
 
-# 追加部分 streamlitでのログを見るためのもの
-st.write("✅ Streamlit アプリ起動中")
-st.write("🔍 その他の環境変数:")
-st.json({
-    "CHROMA_HOST": os.getenv("CHROMA_HOST"),
-    "CHROMA_PORT": os.getenv("CHROMA_PORT"),
-    "LANGCHAIN_TRACING_V2": os.getenv("LANGCHAIN_TRACING_V2"),
-    "LANGCHAIN_API_KEY": os.getenv("LANGCHAIN_API_KEY")
-})
+# 最終動作確認のため非表示に
+# # 追加部分 streamlitでのログを見るためのもの
+# st.write("✅ Streamlit アプリ起動中")
+# st.write("🔍 その他の環境変数:")
+# st.json({
+#     "CHROMA_HOST": os.getenv("CHROMA_HOST"),
+#     "CHROMA_PORT": os.getenv("CHROMA_PORT"),
+#     "LANGCHAIN_TRACING_V2": os.getenv("LANGCHAIN_TRACING_V2"),
+#     "LANGCHAIN_API_KEY": os.getenv("LANGCHAIN_API_KEY")
+# })
 
 ############################################################
 # 2. 設定関連
