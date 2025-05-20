@@ -110,7 +110,7 @@ def initialize_session_id():
         # ランダムな文字列（セッションID）を、ログ出力用に作成
         st.session_state.session_id = uuid4().hex
 
-def initialize_retriever( chunk_size=500, top_k=5, chunk_overlap=0,): #課題2
+def initialize_retriever( chunk_size=500, top_k=20, chunk_overlap=50,): #課題2
     """
     画面読み込み時にRAGのRetriever（ベクターストアから検索するオブジェクト）を作成
     """
@@ -215,10 +215,11 @@ def load_data_sources():
     # 通常読み込みのデータソースにWebページのデータを追加
     docs_all.extend(web_docs_all)
 
-# 課題4追加
-    print("📄 読み込まれたファイル一覧:")
-    for doc in docs_all:
-        print(f"{doc.metadata.get('source')} | page={doc.metadata.get('page')} | chars={len(doc.page_content)}")
+# 開発後なのでミュートに
+# # 課題4追加
+#     print("📄 読み込まれたファイル一覧:")
+#     for doc in docs_all:
+#         print(f"{doc.metadata.get('source')} | page={doc.metadata.get('page')} | chars={len(doc.page_content)}")
 
     return docs_all
 

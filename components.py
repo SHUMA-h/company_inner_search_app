@@ -124,7 +124,7 @@ def display_interface():
         st.markdown("## 利用目的")
 
         st.session_state.mode = st.radio(
-            label="",
+            label="利用目的",# 警告により修正
             options=[ct.ANSWER_MODE_1, ct.ANSWER_MODE_2],
             label_visibility="collapsed",
         )

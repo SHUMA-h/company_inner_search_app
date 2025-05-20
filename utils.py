@@ -132,12 +132,12 @@ def get_llm_response(chat_message):
         st.error("回答生成中にエラーが発生しました。詳細はターミナルをご確認ください。")
         return {"answer": ct.NO_DOC_MATCH_ANSWER, "context": []}
 
-
-    # 🔍 context の中身を表示（開発用）
-    if "context" in llm_response:
-        st.write("🔍 contextの中身:")
-        for i, doc in enumerate(llm_response["context"]):
-            st.write(f"{i}: {doc.metadata}")
+# 開発後なのでミュートに
+#     # 🔍 context の中身を表示（開発用）
+#     if "context" in llm_response:
+#         st.write("🔍 contextの中身:")
+#         for i, doc in enumerate(llm_response["context"]):
+#             st.write(f"{i}: {doc.metadata}")
 
     
     # LLMレスポンスを会話履歴に追加
